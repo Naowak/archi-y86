@@ -1,55 +1,38 @@
-CC=gcc
-CFLAGS=-Wall -O2
+# Comment this out if you don't have Tcl/Tk on your system
 
-ISADIR = ../misc
-YAS=$(ISADIR)/yas
-YIS=$(ISADIR)/yis
-PIPE=../pipe/psim
-SEQ=../seq/ssim
-SEQ+ =../seq/ssim+
+GUIMODE=-DHAS_GUI
 
-YSFILES = $(wildcard *.ys)
-YOFILES = $(YSFILES:.ys=.yo)
+# Modify the following line so that gcc can find the libtcl.so and
+# libtk.so libraries on your system. You may need to use the -L option
+# to tell gcc which directory to look in. Comment this out if you
+# don't have Tcl/Tk.
 
-PIPEFILES = $(YSFILES:.ys=.pipe)
+TKLIBS=-L/c/Tcl/lib -L/usr/local/lib -ltk8.5 -ltcl8.5
 
-SEQFILES = $(YSFILES:.ys=.seq)
+# Modify the following line so that gcc can find the tcl.h and tk.h
+# header files on your system. Comment this out if you don't have
+# Tcl/Tk.
 
-SEQ+FILES = $(YSFILES:.ys=.seq+)
+TKINC=-I/c/Tcl/include -I/usr/include/tcl8.5 -DUSE_INTERP_RESULT
 
-.SUFFIXES:
-.SUFFIXES: .c .s .o .ys .yo .yis .pipe .seq .seq+
+##################################################
+# You shouldn't need to modify anything below here
+##################################################
 
-all: $(YOFILES) 
-
-test: testpsim testssim testssim+
-
-testpsim: $(PIPEFILES)
-	grep "ISA Check" *.pipe
-	rm $(PIPEFILES)
-
-testssim: $(SEQFILES)
-	grep "ISA Check" *.seq
-	rm $(SEQFILES)
-
-testssim+: $(SEQ+FILES)
-	grep "ISA Check" *.seq+
-	rm $(SEQ+FILES)
-
-.ys.yo:
-	$(YAS) $*.ys
-
-.yo.yis: $(YIS)
-	$(YIS) $*.yo > $*.yis
-
-.yo.pipe: $(PIPE)
-	$(PIPE) -t $*.yo > $*.pipe
-
-.yo.seq: $(SEQ)
-	$(SEQ) -t $*.yo > $*.seq
-
-.yo.seq+: $(SEQ+)
-	$(SEQ+) -t $*.yo > $*.seq+
+# Use this rule (make all) to build the Y86 tools. The variables you've
+# assigned to GUIMODE, TKLIBS, and TKINC will override the values that
+# are currently assigned in seq/Makefile and pipe/Makefile.
+all:
+	(cd misc; make all)
+	(cd pipe; make all GUIMODE=$(GUIMODE) TKLIBS="$(TKLIBS)" TKINC="$(TKINC)")
+	(cd seq; make all GUIMODE=$(GUIMODE) TKLIBS="$(TKLIBS)" TKINC="$(TKINC)")
+	(cd y86-code; make all)
 
 clean:
-	rm -f *.o *.yis *~ *.yo *.pipe *.seq *.seq+ core
+	rm -f *~ core
+	(cd misc; make clean)
+	(cd pipe; make clean)
+	(cd seq; make clean)
+	(cd y86-code; make clean)
+	(cd ptest; make clean)
+

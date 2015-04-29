@@ -4,6 +4,17 @@
 #    Copyright (C) Randal E. Bryant, David R. O'Hallaron, 2002     #
 ####################################################################
 
+## Your task is to modify the design so that on any cycle, only
+## one of the two possible (valE and valM) register writes will occur.
+## This requires special handling of the popl instruction.
+## Overall strategy:  IPOPL passes through pipe, 
+## treated as stack pointer increment, but not incrementing the PC
+## On refetch, modify fetched icode to indicate an instruction "IPOP2",
+## which reads from memory.
+## This requires explicit declaration of the value new_D_icode
+## and lots of other changes.  Relevant positions to change
+## are indicated by comments starting with keyword "1W".
+
 ####################################################################
 #    C Include's.  Don't alter these                               #
 ####################################################################
@@ -21,28 +32,24 @@ quote 'int main(int argc, char *argv[]){return sim_main(argc,argv);}'
 ####################################################################
 
 ##### Symbolic representation of Y86 Instruction Codes #############
-intsig NOP 	'I_NOP'
-intsig HALT	'I_HALT'
-intsig RRMOVL	'I_RRMOVL'
-intsig IRMOVL	'I_IRMOVL'
-intsig RMMOVL	'I_RMMOVL'
-intsig MRMOVL	'I_MRMOVL'
-intsig OPL	'I_ALU'
-intsig IOPL	'I_ALUI'
-intsig JXX	'I_JXX'
-intsig CALL	'I_CALL'
-intsig RET	'I_RET'
-intsig PUSHL	'I_PUSHL'
-intsig POPL	'I_POPL'
-intsig JMEM	'I_JMEM'
-intsig JREG	'I_JREG'
-intsig LEAVE	'I_LEAVE'
+intsig INOP 	'I_NOP'
+intsig IHALT	'I_HALT'
+intsig IRRMOVL	'I_RRMOVL'
+intsig IIRMOVL	'I_IRMOVL'
+intsig IRMMOVL	'I_RMMOVL'
+intsig IMRMOVL	'I_MRMOVL'
+intsig IOPL	'I_ALU'
+intsig IJXX	'I_JXX'
+intsig ICALL	'I_CALL'
+intsig IRET	'I_RET'
+intsig IPUSHL	'I_PUSHL'
+intsig IPOPL	'I_POPL'
+# 1W: Special instruction code for second try of popl
+intsig IPOP2	'I_POP2'
 
 ##### Symbolic representation of Y86 Registers referenced explicitly #####
 intsig RESP     'REG_ESP'    	# Stack Pointer
-intsig REBP     'REG_EBP'    	# Frame Pointer
 intsig RNONE    'REG_NONE'   	# Special value indicating "no register"
-intsig DNONE    'DEST_NONE'     # "no destination register"
 
 ##### ALU Functions referenced explicitly ##########################
 intsig ALUADD	'A_ADD'		# ALU should add its arguments
@@ -59,6 +66,8 @@ intsig f_icode	'if_id_next->icode'  # Fetched instruction code
 intsig f_ifun	'if_id_next->ifun'   # Fetched instruction function
 intsig f_valC	'if_id_next->valc'   # Constant data of fetched instruction
 intsig f_valP	'if_id_next->valp'   # Address of following instruction
+## 1W: Provide access to the PC value for the current instruction
+intsig f_pc	'f_pc'               # Address of fetched instruction
 
 ##### Pipeline Register D ##########################################
 intsig D_icode 'if_id_curr->icode'	# Instruction code
@@ -116,66 +125,78 @@ intsig W_valM  'mem_wb_curr->valm'	# Memory M value
 ## What address should instruction be fetched at
 int f_pc = [
 	# Mispredicted branch.  Fetch at incremented PC
-	M_icode == JXX && !M_Bch : M_valA;
+	M_icode == IJXX && !M_Bch : M_valA;
 	# Completion of RET instruction.
-	W_icode == RET : W_valM;
+	W_icode == IRET : W_valM;
 	# Default: Use predicted value of PC
 	1 : F_predPC;
 ];
 
 # Does fetched instruction require a regid byte?
 bool need_regids =
-	f_icode in { RRMOVL, OPL, IOPL, PUSHL, POPL, IRMOVL, RMMOVL, MRMOVL };
+	f_icode in { IRRMOVL, IOPL, IPUSHL, IPOPL, 
+		     IIRMOVL, IRMMOVL, IMRMOVL };
 
 # Does fetched instruction require a constant word?
 bool need_valC =
-	f_icode in { IRMOVL, RMMOVL, MRMOVL, JXX, CALL, IOPL };
+	f_icode in { IIRMOVL, IRMMOVL, IMRMOVL, IJXX, ICALL };
 
 bool instr_valid = f_icode in 
-	{ NOP, HALT, RRMOVL, IRMOVL, RMMOVL, MRMOVL,
-	       OPL, IOPL, JXX, CALL, RET, PUSHL, POPL };
+	{ INOP, IHALT, IRRMOVL, IIRMOVL, IRMMOVL, IMRMOVL,
+	       IOPL, IJXX, ICALL, IRET, IPUSHL, IPOPL };
 
 # Predict next value of PC
 int new_F_predPC = [
-	f_icode in { JXX, CALL } : f_valC;
+	f_icode in { IJXX, ICALL } : f_valC;
+	## 1W: Want to refetch popl one time
 	1 : f_valP;
 ];
 
+## W1: To split ipopl into two cycles, need to be able to 
+## modify fetched value of icode, so that it will be IPOP2
+## when fetched for second time.
+# Set code for fetched instruction
+int new_D_icode = [
+	1 : f_icode;
+];
 
 ################ Decode Stage ######################################
 
+## W1: Strategy.  Decoding of popl rA should be treated the same
+## as would iaddl $4, %esp
+## Decoding of pop2 rA treated same as mrmovl -4(%esp), rA
 
 ## What register should be used as the A source?
 int new_E_srcA = [
-	D_icode in { RRMOVL, RMMOVL, OPL, PUSHL } : D_rA;
-	D_icode in { POPL, RET } : RESP;
+	D_icode in { IRRMOVL, IRMMOVL, IOPL, IPUSHL  } : D_rA;
+	D_icode in { IPOPL, IRET } : RESP;
 	1 : RNONE; # Don't need register
 ];
 
 ## What register should be used as the B source?
 int new_E_srcB = [
-	D_icode in { OPL, IOPL, RMMOVL, MRMOVL } : D_rB;
-	D_icode in { PUSHL, POPL, CALL, RET } : RESP;
+	D_icode in { IOPL, IRMMOVL, IMRMOVL  } : D_rB;
+	D_icode in { IPUSHL, IPOPL, ICALL, IRET } : RESP;
 	1 : RNONE;  # Don't need register
 ];
 
 ## What register should be used as the E destination?
 int new_E_dstE = [
-	D_icode in { RRMOVL, IRMOVL, OPL, IOPL } : D_rB;
-	D_icode in { PUSHL, POPL, CALL, RET } : RESP;
-	1 : DNONE;  # Don't need register DNONE, not RNONE
+	D_icode in { IRRMOVL, IIRMOVL, IOPL} : D_rB;
+	D_icode in { IPUSHL, IPOPL, ICALL, IRET } : RESP;
+	1 : RNONE;  # Don't need register
 ];
 
 ## What register should be used as the M destination?
 int new_E_dstM = [
-	D_icode in { MRMOVL, POPL } : D_rA;
-	1 : DNONE;  # Don't need register DNONE, not RNONE
+D_icode in { IMRMOVL, IPOPL } : D_rA;
+	1 : RNONE;  # Don't need register
 ];
 
 ## What should be the A value?
 ## Forward into decode stage for valA
 int new_E_valA = [
-	D_icode in { CALL, JXX } : D_valP; # Use incremented PC
+	D_icode in { ICALL, IJXX } : D_valP; # Use incremented PC
 	d_srcA == E_dstE : e_valE;    # Forward valE from execute
 	d_srcA == M_dstM : m_valM;    # Forward valM from memory
 	d_srcA == M_dstE : M_valE;    # Forward valE from memory
@@ -197,78 +218,101 @@ int new_E_valB = [
 
 ## Select input A to ALU
 int aluA = [
-	E_icode in { RRMOVL, OPL } : E_valA;
-	E_icode in { IRMOVL, RMMOVL, MRMOVL, IOPL } : E_valC;
-	E_icode in { CALL, PUSHL } : -4;
-	E_icode in { RET, POPL } : 4;
+	E_icode in { IRRMOVL, IOPL } : E_valA;
+	E_icode in { IIRMOVL, IRMMOVL, IMRMOVL } : E_valC;
+	E_icode in { ICALL, IPUSHL } : -4;
+	E_icode in { IRET, IPOPL } : 4;
 	# Other instructions don't need ALU
 ];
 
 ## Select input B to ALU
 int aluB = [
-	E_icode in { RMMOVL, MRMOVL, OPL, IOPL, CALL, 
-		      PUSHL, RET, POPL } : E_valB;
-	E_icode in { RRMOVL, IRMOVL } : 0;
+	E_icode in { IRMMOVL, IMRMOVL, IOPL, ICALL, 
+		      IPUSHL, IRET, IPOPL } : E_valB;
+	E_icode in { IRRMOVL, IIRMOVL } : 0;
 	# Other instructions don't need ALU
 ];
 
 ## Set the ALU function
 int alufun = [
-	E_icode in { OPL, IOPL } : E_ifun;
+	E_icode == IOPL : E_ifun;
 	1 : ALUADD;
 ];
 
 ## Should the condition codes be updated?
-bool set_cc = E_icode in { OPL, IOPL };
+bool set_cc = E_icode == IOPL;
 
 
 ################ Memory Stage ######################################
 
 ## Select memory address
 int mem_addr = [
-M_icode in { RMMOVL, PUSHL, CALL, MRMOVL } : M_valE;
-	M_icode in { POPL, RET } : M_valA;
+M_icode in { IRMMOVL, IPUSHL, ICALL, IMRMOVL } : M_valE;
+	M_icode in { IPOPL, IRET } : M_valA;
 	# Other instructions don't need address
 ];
 
 ## Set read control signal
-bool mem_read = M_icode in { MRMOVL, POPL, RET };
+bool mem_read = M_icode in { IMRMOVL, IPOPL, IRET };
 
 ## Set write control signal
-bool mem_write = M_icode in { RMMOVL, PUSHL, CALL };
+bool mem_write = M_icode in { IRMMOVL, IPUSHL, ICALL };
 
+################ Write back stage ##################################
+
+## 1W: For this problem, we introduce a multiplexor that merges
+## valE and valM into a single value for writing to register port E.
+## DO NOT CHANGE THIS LOGIC
+## Merge both write back sources onto register port E 
+int w_dstE = [
+	## writing from valM
+	W_dstM != RNONE : W_dstM;
+	1: W_dstE;
+];
+int w_valE = [
+	W_dstM != RNONE : W_valM;
+	1: W_valE;
+];
+## Set so that register port M is never used.
+int w_dstM = RNONE;
+int w_valM = 0;
 
 ################ Pipeline Register Control #########################
 
 # Should I stall or inject a bubble into Pipeline Register F?
 # At most one of these can be true.
-bool F_bubble =
-	# Inject bubbles instead of fetching while ret passes through pipeline
-	RET in { D_icode, E_icode, M_icode } ||
-	# Maching is halting, stop fetching
-	HALT in { f_icode, D_icode, E_icode, M_icode, W_icode };
+bool F_bubble = 0;
 bool F_stall =
 	# Conditions for a load/use hazard
-	E_dstM in { d_srcA, d_srcB };
+	E_icode in { IMRMOVL, IPOPL } &&
+	 E_dstM in { d_srcA, d_srcB } ||
+	# Stalling at fetch while ret passes through pipeline
+	IRET in { D_icode, E_icode, M_icode };
 
 # Should I stall or inject a bubble into Pipeline Register D?
 # At most one of these can be true.
 bool D_stall = 
 	# Conditions for a load/use hazard
-	E_dstM in { d_srcA, d_srcB };
+	E_icode in { IMRMOVL, IPOPL } &&
+	 E_dstM in { d_srcA, d_srcB };
 
 bool D_bubble =
-	# Mispredicted branch, drop instruction
-	(E_icode == JXX && !e_Bch);
+	# Mispredicted branch
+	(E_icode == IJXX && !e_Bch) ||
+	# Stalling at fetch while ret passes through pipeline
+	# but not condition for a load/use hazard
+	!(E_icode in { IMRMOVL, IPOPL } && E_dstM in { d_srcA, d_srcB }) &&
+	  IRET in { D_icode, E_icode, M_icode };
 
 # Should I stall or inject a bubble into Pipeline Register E?
 # At most one of these can be true.
 bool E_stall = 0;
 bool E_bubble =
-	# Mispredicted branch, drop instruction
-	(E_icode == JXX && !e_Bch) ||
-	# Conditions for a load/use hazard, stalling in decode
-	E_dstM in { d_srcA, d_srcB};
+	# Mispredicted branch
+	(E_icode == IJXX && !e_Bch) ||
+	# Conditions for a load/use hazard
+	E_icode in { IMRMOVL, IPOPL } &&
+	   E_dstM in { d_srcA, d_srcB};
 
 # Should I stall or inject a bubble into Pipeline Register M?
 # At most one of these can be true.
