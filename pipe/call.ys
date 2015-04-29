@@ -1,0 +1,14 @@
+        irmovl 0x200,%esp
+        call f
+        halt
+
+
+f:      irmovl 1,%eax
+        nop
+        nop
+        nop
+        nop
+        pushl  %eax
+        popl   %ebx
+        nop
+        ret

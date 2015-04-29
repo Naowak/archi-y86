@@ -1,0 +1,14 @@
+  0x000: 308400020000 |         irmovl 0x200,%esp
+  0x006: 800c000000   |         call f
+  0x00b: 10           |         halt
+                      | 
+                      | 
+  0x00c: 308001000000 | f:      irmovl 1,%eax
+  0x012: 00           |         nop
+  0x013: 00           |         nop
+  0x014: 00           |         nop
+  0x015: 00           |         nop
+  0x016: a008         |         pushl  %eax
+  0x018: b038         |         popl   %ebx
+  0x01a: 00           |         nop
+  0x01b: 90           | 
