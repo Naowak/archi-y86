@@ -141,6 +141,10 @@ int new_F_predPC = [
 	1 : f_valP;
 ];
 
+int instr_next_ifun = [
+	1 : -1;
+];
+
 
 ################ Decode Stage ######################################
 

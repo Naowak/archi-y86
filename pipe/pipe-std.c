@@ -31,6 +31,11 @@ int gen_new_F_predPC()
     return (((if_id_next->icode) == (I_JXX)||(if_id_next->icode) == (I_CALL)) ? (if_id_next->valc) : 1 ? (if_id_next->valp) : 0);
 }
 
+int gen_instr_next_ifun()
+{
+    return (1 ? -1 : 0);
+}
+
 int gen_new_E_srcA()
 {
     return (((if_id_curr->icode) == (I_RRMOVL)||(if_id_curr->icode) == (I_RMMOVL)||(if_id_curr->icode) == (I_ALU)||(if_id_curr->icode) == (I_PUSHL)) ? (if_id_curr->ra) : ((if_id_curr->icode) == (I_POPL)||(if_id_curr->icode) == (I_RET)) ? (REG_ESP) : 1 ? (REG_NONE) : 0);
