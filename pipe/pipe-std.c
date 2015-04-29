@@ -13,7 +13,7 @@ int gen_f_pc()
 
 int gen_need_regids()
 {
-    return ((if_id_next->icode) == (I_RRMOVL)||(if_id_next->icode) == (I_ALU)||(if_id_next->icode) == (I_ALUI)||(if_id_next->icode) == (I_PUSHL)||(if_id_next->icode) == (I_POPL)||(if_id_next->icode) == (I_IRMOVL)||(if_id_next->icode) == (I_RMMOVL)||(if_id_next->icode) == (I_MRMOVL));
+    return ((if_id_next->icode) == (I_RRMOVL)||(if_id_next->icode) == (I_ALU)||(if_id_next->icode) == (I_ALUI)||(if_id_next->icode) == (I_PUSHL)||(if_id_next->icode) == (I_POPL)||(if_id_next->icode) == (I_IRMOVL)||(if_id_next->icode) == (I_RMMOVL)||(if_id_next->icode) == (I_MRMOVL)||(if_id_next->icode) == (I_JREG));
 }
 
 int gen_need_valC()
@@ -23,7 +23,12 @@ int gen_need_valC()
 
 int gen_instr_valid()
 {
-    return ((if_id_next->icode) == (I_NOP)||(if_id_next->icode) == (I_HALT)||(if_id_next->icode) == (I_RRMOVL)||(if_id_next->icode) == (I_IRMOVL)||(if_id_next->icode) == (I_RMMOVL)||(if_id_next->icode) == (I_MRMOVL)||(if_id_next->icode) == (I_ALU)||(if_id_next->icode) == (I_ALUI)||(if_id_next->icode) == (I_JXX)||(if_id_next->icode) == (I_CALL)||(if_id_next->icode) == (I_RET)||(if_id_next->icode) == (I_PUSHL)||(if_id_next->icode) == (I_POPL));
+    return ((if_id_next->icode) == (I_NOP)||(if_id_next->icode) == (I_HALT)||(if_id_next->icode) == (I_RRMOVL)||(if_id_next->icode) == (I_IRMOVL)||(if_id_next->icode) == (I_RMMOVL)||(if_id_next->icode) == (I_MRMOVL)||(if_id_next->icode) == (I_ALU)||(if_id_next->icode) == (I_ALUI)||(if_id_next->icode) == (I_JXX)||(if_id_next->icode) == (I_CALL)||(if_id_next->icode) == (I_RET)||(if_id_next->icode) == (I_PUSHL)||(if_id_next->icode) == (I_POPL)||(if_id_next->icode) == (I_JREG));
+}
+
+int gen_instr_next_ifun()
+{
+    return (1 ? -1 : 0);
 }
 
 int gen_new_F_predPC()
