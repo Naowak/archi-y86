@@ -1,0 +1,5 @@
+irmovl 400, %esp
+irmovl 300, %ebp
+
+enter
+halt
