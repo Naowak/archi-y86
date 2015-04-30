@@ -156,6 +156,8 @@ int instr_next_ifun = [
 int new_E_srcA = [
 	D_icode in { RRMOVL, RMMOVL, OPL, PUSHL } : D_rA;
 	D_icode in { POPL, RET } : RESP;
+	D_icode == ENTER && f_ifun == 0 : REBP;
+	D_icode == ENTER && f_ifun == 1 : RESP;
 	1 : RNONE; # Don't need register
 ];
 
@@ -163,6 +165,8 @@ int new_E_srcA = [
 int new_E_srcB = [
 	D_icode in { OPL, IOPL, RMMOVL, MRMOVL } : D_rB;
 	D_icode in { PUSHL, POPL, CALL, RET } : RESP;
+	D_icode == ENTER && f_ifun == 0 : RESP;
+	D_icode == ENTER && f_ifun == 1 : REBP;
 	1 : RNONE;  # Don't need register
 ];
 
@@ -170,6 +174,8 @@ int new_E_srcB = [
 int new_E_dstE = [
 	D_icode in { RRMOVL, IRMOVL, OPL, IOPL } : D_rB;
 	D_icode in { PUSHL, POPL, CALL, RET } : RESP;
+	D_icode == ENTER && f_ifun == 0 : RESP;
+	D_icode == ENTER && f_ifun == 1 : REBP;
 	1 : DNONE;  # Don't need register DNONE, not RNONE
 ];
 
@@ -208,6 +214,8 @@ int aluA = [
 	E_icode in { IRMOVL, RMMOVL, MRMOVL, IOPL } : E_valC;
 	E_icode in { CALL, PUSHL } : -4;
 	E_icode in { RET, POPL } : 4;
+	E_icode == ENTER && E_ifun == 0 : -4;
+	E_icode == ENTER && E_ifun == 1 : E_valA;
 	# Other instructions don't need ALU
 ];
 
@@ -216,6 +224,8 @@ int aluB = [
 	E_icode in { RMMOVL, MRMOVL, OPL, IOPL, CALL, 
 		      PUSHL, RET, POPL } : E_valB;
 	E_icode in { RRMOVL, IRMOVL } : 0;
+	E_icode == ENTER && E_ifun == 0 : E_valB;
+	E_icode == ENTER && E_ifun == 1 : 0;
 	# Other instructions don't need ALU
 ];
 
@@ -234,7 +244,8 @@ bool set_cc = E_icode in { OPL, IOPL };
 ## Select memory address
 int mem_addr = [
 M_icode in { RMMOVL, PUSHL, CALL, MRMOVL } : M_valE;
-	M_icode in { POPL, RET } : M_valA;
+M_icode in { POPL, RET } : M_valA;
+M_icode == ENTER && M_ifun == 0 : M_valE;
 	# Other instructions don't need address
 ];
 
@@ -242,7 +253,7 @@ M_icode in { RMMOVL, PUSHL, CALL, MRMOVL } : M_valE;
 bool mem_read = M_icode in { MRMOVL, POPL, RET };
 
 ## Set write control signal
-bool mem_write = M_icode in { RMMOVL, PUSHL, CALL };
+bool mem_write = (M_icode in { RMMOVL, PUSHL, CALL }) || (M_icode == ENTER && M_ifun == 0);
 
 
 ################ Pipeline Register Control #########################
