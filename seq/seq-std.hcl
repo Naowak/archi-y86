@@ -29,7 +29,6 @@ intsig IRMOVL	'I_IRMOVL'
 intsig RMMOVL	'I_RMMOVL'
 intsig MRMOVL	'I_MRMOVL'
 intsig OPL	'I_ALU'
-intsig IOPL	'I_ALUI'
 intsig JXX	'I_JXX'
 intsig CALL	'I_CALL'
 intsig RET	'I_RET'
@@ -80,15 +79,19 @@ intsig valM	'valm'			# Value read from memory
 
 # Does fetched instruction require a regid byte?
 bool need_regids =
-	icode in { RRMOVL, OPL, IOPL, PUSHL, POPL, IRMOVL, RMMOVL, MRMOVL };
+	icode in { RRMOVL, OPL, PUSHL, POPL, IRMOVL, RMMOVL, MRMOVL };
 
 # Does fetched instruction require a constant word?
 bool need_valC =
-	icode in { IRMOVL, RMMOVL, MRMOVL, JXX, CALL, IOPL };
+	icode in { IRMOVL, RMMOVL, MRMOVL, JXX, CALL, OPL };
 
 bool instr_valid = icode in 
 	{ NOP, HALT, RRMOVL, IRMOVL, RMMOVL, MRMOVL,
+<<<<<<< HEAD
 	       OPL, IOPL, JXX, CALL, RET, PUSHL, POPL, ENTER };
+=======
+	       OPL, JXX, CALL, RET, PUSHL, POPL };
+>>>>>>> bab008609278c405c5d8cd9594bcaaea8ab60bb0
 
 int instr_next_ifun = [
 	icode == ENTER && ifun == 0 : 1;
@@ -108,7 +111,7 @@ int srcA = [
 
 ## What register should be used as the B source?
 int srcB = [
-	icode in { OPL, IOPL, RMMOVL, MRMOVL } : rB;
+	icode in { OPL, RMMOVL, MRMOVL } : rB;
 	icode in { PUSHL, POPL, CALL, RET } : RESP;
 	icode == ENTER && ifun == 0 : RESP;
 	icode == ENTER && ifun == 1 : REBP;
@@ -117,7 +120,7 @@ int srcB = [
 
 ## What register should be used as the E destination?
 int dstE = [
-	icode in { RRMOVL, IRMOVL, OPL, IOPL } : rB;
+	icode in { RRMOVL, IRMOVL, OPL} : rB;
 	icode in { PUSHL, POPL, CALL, RET } : RESP;
 	icode == ENTER && ifun == 0 : RESP;
 	icode == ENTER && ifun == 1 : REBP;
@@ -134,8 +137,12 @@ int dstM = [
 
 ## Select input A to ALU
 int aluA = [
-	icode in { RRMOVL, OPL } : valA;
-	icode in { IRMOVL, RMMOVL, MRMOVL, IOPL } : valC;
+
+	icode == OPL && rA == RNONE : valC;
+	icode == OPL : valA;
+
+	icode in { RRMOVL } : valA;
+	icode in { IRMOVL, RMMOVL, MRMOVL} : valC;
 	icode in { CALL, PUSHL } : -4;
 	icode in { RET, POPL } : 4;
 	icode == ENTER && ifun == 0 : -4;
@@ -145,7 +152,7 @@ int aluA = [
 
 ## Select input B to ALU
 int aluB = [
-	icode in { RMMOVL, MRMOVL, OPL, IOPL, CALL, PUSHL, RET, POPL } : valB;
+	icode in { RMMOVL, MRMOVL, OPL, CALL, PUSHL, RET, POPL } : valB;
 	icode in { RRMOVL, IRMOVL } : 0;
 	icode == ENTER && ifun == 0 : valB;
 	icode == ENTER && ifun == 1 : 0;
@@ -154,12 +161,12 @@ int aluB = [
 
 ## Set the ALU function
 int alufun = [
-	icode in { OPL, IOPL } : ifun;
+	icode in { OPL } : ifun;
 	1 : ALUADD;
 ];
 
 ## Should the condition codes be updated?
-bool set_cc = icode in { OPL, IOPL };
+bool set_cc = icode in { OPL};
 
 ################ Memory Stage    ###################################
 
