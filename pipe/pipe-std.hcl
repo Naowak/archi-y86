@@ -135,7 +135,7 @@ bool need_valC =
 
 bool instr_valid = f_icode in 
 	{ NOP, HALT, RRMOVL, IRMOVL, RMMOVL, MRMOVL,
-	       OPL, IOPL, JXX, CALL, RET, PUSHL, POPL };
+	       OPL, IOPL, JXX, CALL, RET, PUSHL, POPL, ENTER};
 
 # Predict next value of PC
 int new_F_predPC = [
@@ -144,7 +144,7 @@ int new_F_predPC = [
 ];
 
 int instr_next_ifun = [
-	icode == ENTER && ifun == 0 : 1;
+	f_icode == ENTER && f_ifun == 0 : 1;
 	1 : -1;
 ];
 

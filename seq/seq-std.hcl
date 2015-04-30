@@ -87,11 +87,7 @@ bool need_valC =
 
 bool instr_valid = icode in 
 	{ NOP, HALT, RRMOVL, IRMOVL, RMMOVL, MRMOVL,
-<<<<<<< HEAD
-	       OPL, IOPL, JXX, CALL, RET, PUSHL, POPL, ENTER };
-=======
-	       OPL, JXX, CALL, RET, PUSHL, POPL };
->>>>>>> bab008609278c405c5d8cd9594bcaaea8ab60bb0
+	       OPL, JXX, CALL, RET, PUSHL, POPL, ENTER };
 
 int instr_next_ifun = [
 	icode == ENTER && ifun == 0 : 1;
