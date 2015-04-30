@@ -1,0 +1,3 @@
+irmovl 5, %eax
+iaddl 3, %eax
+halt
