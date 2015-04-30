@@ -37,6 +37,8 @@ intsig POPL	'I_POPL'
 intsig JMEM	'I_JMEM'
 intsig JREG	'I_JREG'
 intsig LEAVE	'I_LEAVE'
+intsig ENTER 'I_ENTER'
+
 
 ##### Symbolic representation of Y86 Registers referenced explicitly #####
 intsig RESP     'REG_ESP'    	# Stack Pointer
@@ -142,6 +144,7 @@ int new_F_predPC = [
 ];
 
 int instr_next_ifun = [
+	icode == ENTER && ifun == 0 : 1;
 	1 : -1;
 ];
 

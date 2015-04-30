@@ -29,7 +29,7 @@ typedef enum { I_NOP, I_HALT, I_RRMOVL, I_IRMOVL, I_RMMOVL, I_MRMOVL,
 	       I_ENTER, I_LEAVE, I_JREG, I_JMEM, I_POP2 } itype_t;
 
 /* pour compatibilité */
-#define I_ALUI A_ALU
+#define I_ALUI I_ALU
 #define I_IADDL I_ALUI
 
 /* Different ALU operations */
