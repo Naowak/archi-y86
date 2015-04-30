@@ -922,33 +922,33 @@ exc_t step_state(state_ptr s, FILE *error_file)
 	set_reg_val(s->r, REG_EBP, val);
 	s->pc = ftpc;
 	break;
-    case I_ALUI:
-	if (!ok1) {
-	    if (error_file)
-		fprintf(error_file,
-			"PC = 0x%x, Invalid instruction address\n", s->pc);
-	    return EXC_ADDR;
-	}
-	if (!okc) {
-	    if (error_file)
-		fprintf(error_file,
-			"PC = 0x%x, Invalid instruction address",
-			s->pc);
-	    return EXC_INSTR;
-	}
-	if (lo1 >= 8) {
-	    if (error_file)
-		fprintf(error_file,
-			"PC = 0x%x, Invalid register ID 0x%.1x\n",
-			s->pc, lo1);
-	    return EXC_INSTR;
-	}
-	argB = get_reg_val(s->r, lo1);
-	val = argB + cval;
-	set_reg_val(s->r, lo1, val);
-	s->cc = compute_cc(A_ADD, cval, argB);
-	s->pc = ftpc;
-	break;
+ //    case I_ALUI:
+	// if (!ok1) {
+	//     if (error_file)
+	// 	fprintf(error_file,
+	// 		"PC = 0x%x, Invalid instruction address\n", s->pc);
+	//     return EXC_ADDR;
+	// }
+	// if (!okc) {
+	//     if (error_file)
+	// 	fprintf(error_file,
+	// 		"PC = 0x%x, Invalid instruction address",
+	// 		s->pc);
+	//     return EXC_INSTR;
+	// }
+	// if (lo1 >= 8) {
+	//     if (error_file)
+	// 	fprintf(error_file,
+	// 		"PC = 0x%x, Invalid register ID 0x%.1x\n",
+	// 		s->pc, lo1);
+	//     return EXC_INSTR;
+	// }
+	// argB = get_reg_val(s->r, lo1);
+	// val = argB + cval;
+	// set_reg_val(s->r, lo1, val);
+	// s->cc = compute_cc(A_ADD, cval, argB);
+	// s->pc = ftpc;
+	// break;
     default:
 	if (error_file)
 	    fprintf(error_file,
