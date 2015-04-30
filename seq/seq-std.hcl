@@ -25,7 +25,6 @@ quote '  {plusmode=0;return sim_main(argc,argv);}'
 intsig NOP 	'I_NOP'
 intsig HALT	'I_HALT'
 intsig RRMOVL	'I_RRMOVL'
-intsig IRMOVL	'I_IRMOVL'
 intsig RMMOVL	'I_RMMOVL'
 intsig MRMOVL	'I_MRMOVL'
 intsig OPL	'I_ALU'
@@ -79,14 +78,14 @@ intsig valM	'valm'			# Value read from memory
 
 # Does fetched instruction require a regid byte?
 bool need_regids =
-	icode in { RRMOVL, OPL, PUSHL, POPL, IRMOVL, RMMOVL, MRMOVL };
+	icode in { RRMOVL, OPL, PUSHL, POPL, RMMOVL, MRMOVL };
 
 # Does fetched instruction require a constant word?
 bool need_valC =
-	icode in { IRMOVL, RMMOVL, MRMOVL, JXX, CALL, OPL };
+	icode in {RRMOVL, RMMOVL, MRMOVL, JXX, CALL, OPL };
 
 bool instr_valid = icode in 
-	{ NOP, HALT, RRMOVL, IRMOVL, RMMOVL, MRMOVL,
+	{ NOP, HALT, RRMOVL, RMMOVL, MRMOVL,
 	       OPL, JXX, CALL, RET, PUSHL, POPL, ENTER };
 
 int instr_next_ifun = [
@@ -116,7 +115,7 @@ int srcB = [
 
 ## What register should be used as the E destination?
 int dstE = [
-	icode in { RRMOVL, IRMOVL, OPL} : rB;
+	icode in { RRMOVL, OPL} : rB;
 	icode in { PUSHL, POPL, CALL, RET } : RESP;
 	icode == ENTER && ifun == 0 : RESP;
 	icode == ENTER && ifun == 1 : REBP;
@@ -137,8 +136,10 @@ int aluA = [
 	icode == OPL && rA == RNONE : valC;
 	icode == OPL : valA;
 
-	icode in { RRMOVL } : valA;
-	icode in { IRMOVL, RMMOVL, MRMOVL} : valC;
+	icode == RRMOVL && rA == RNONE : valC;
+	icode == RRMOVL : valA;
+
+	icode in {RMMOVL, MRMOVL} : valC;
 	icode in { CALL, PUSHL } : -4;
 	icode in { RET, POPL } : 4;
 	icode == ENTER && ifun == 0 : -4;
@@ -149,7 +150,7 @@ int aluA = [
 ## Select input B to ALU
 int aluB = [
 	icode in { RMMOVL, MRMOVL, OPL, CALL, PUSHL, RET, POPL } : valB;
-	icode in { RRMOVL, IRMOVL } : 0;
+	icode in { RRMOVL} : 0;
 	icode == ENTER && ifun == 0 : valB;
 	icode == ENTER && ifun == 1 : 0;
 	# Other instructions don't need ALU
