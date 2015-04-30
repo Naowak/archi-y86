@@ -29,7 +29,6 @@ intsig IRMOVL	'I_IRMOVL'
 intsig RMMOVL	'I_RMMOVL'
 intsig MRMOVL	'I_MRMOVL'
 intsig OPL	'I_ALU'
-intsig IOPL	'I_ALUI'
 intsig JXX	'I_JXX'
 intsig CALL	'I_CALL'
 intsig RET	'I_RET'
@@ -79,15 +78,15 @@ intsig valM	'valm'			# Value read from memory
 
 # Does fetched instruction require a regid byte?
 bool need_regids =
-	icode in { RRMOVL, OPL, IOPL, PUSHL, POPL, IRMOVL, RMMOVL, MRMOVL };
+	icode in { RRMOVL, OPL, PUSHL, POPL, IRMOVL, RMMOVL, MRMOVL };
 
 # Does fetched instruction require a constant word?
 bool need_valC =
-	icode in { IRMOVL, RMMOVL, MRMOVL, JXX, CALL, IOPL };
+	icode in { IRMOVL, RMMOVL, MRMOVL, JXX, CALL, OPL };
 
 bool instr_valid = icode in 
 	{ NOP, HALT, RRMOVL, IRMOVL, RMMOVL, MRMOVL,
-	       OPL, IOPL, JXX, CALL, RET, PUSHL, POPL };
+	       OPL, JXX, CALL, RET, PUSHL, POPL };
 
 int instr_next_ifun = [
 	1 : -1;
@@ -104,14 +103,14 @@ int srcA = [
 
 ## What register should be used as the B source?
 int srcB = [
-	icode in { OPL, IOPL, RMMOVL, MRMOVL } : rB;
+	icode in { OPL, RMMOVL, MRMOVL } : rB;
 	icode in { PUSHL, POPL, CALL, RET } : RESP;
 	1 : RNONE;  # Don't need register
 ];
 
 ## What register should be used as the E destination?
 int dstE = [
-	icode in { RRMOVL, IRMOVL, OPL, IOPL } : rB;
+	icode in { RRMOVL, IRMOVL, OPL} : rB;
 	icode in { PUSHL, POPL, CALL, RET } : RESP;
 	1 : RNONE;  # Don't need register
 ];
@@ -126,8 +125,12 @@ int dstM = [
 
 ## Select input A to ALU
 int aluA = [
-	icode in { RRMOVL, OPL } : valA;
-	icode in { IRMOVL, RMMOVL, MRMOVL, IOPL } : valC;
+
+	icode == OPL && rA == RNONE : valC;
+	icode == OPL : valA;
+
+	icode in { RRMOVL } : valA;
+	icode in { IRMOVL, RMMOVL, MRMOVL} : valC;
 	icode in { CALL, PUSHL } : -4;
 	icode in { RET, POPL } : 4;
 	# Other instructions don't need ALU
@@ -135,19 +138,19 @@ int aluA = [
 
 ## Select input B to ALU
 int aluB = [
-	icode in { RMMOVL, MRMOVL, OPL, IOPL, CALL, PUSHL, RET, POPL } : valB;
+	icode in { RMMOVL, MRMOVL, OPL, CALL, PUSHL, RET, POPL } : valB;
 	icode in { RRMOVL, IRMOVL } : 0;
 	# Other instructions don't need ALU
 ];
 
 ## Set the ALU function
 int alufun = [
-	icode in { OPL, IOPL } : ifun;
+	icode in { OPL } : ifun;
 	1 : ALUADD;
 ];
 
 ## Should the condition codes be updated?
-bool set_cc = icode in { OPL, IOPL };
+bool set_cc = icode in { OPL};
 
 ################ Memory Stage    ###################################
 
