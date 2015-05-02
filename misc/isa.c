@@ -49,6 +49,7 @@ instr_t instruction_set[] =
 {
 	{"enter", HPACK(I_ENTER, 0), 2, NO_ARG, 1, 1, NO_ARG, 0, 0},
 	{"enter1", HPACK(I_ENTER, 0), 2, NO_ARG, 1, 1, NO_ARG, 0, 0},
+    {"mul", HPACK(I_MUL, 0), 7, R_ARG, 1, 1, R_ARG, 1, 0},
 		/* ajout instruction */
     {"nop",    HPACK(I_NOP, 0), 1, NO_ARG, 0, 0, NO_ARG, 0, 0 },
     {"halt",   HPACK(I_HALT, 0), 1, NO_ARG, 0, 0, NO_ARG, 0, 0 },
