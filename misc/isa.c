@@ -48,12 +48,7 @@ char *reg_name(reg_id_t id)
 instr_t instruction_set[] = 
 {
   {"mul",  HPACK(I_MUL, 0), 7, R_ARG, 1, 1, R_ARG, 1, 0 },
-  {"mul1",  HPACK(I_MUL, 1), 7, R_ARG, 1, 1, R_ARG, 1, 0 },
-  {"mul2",  HPACK(I_MUL, 2), 7, R_ARG, 1, 1, R_ARG, 1, 0 },
 
-  {"lods",  HPACK(I_LODS, 0), 0, NO_ARG, 0, 0, NO_ARG, 0, 0 },
-  {"stos",  HPACK(I_STOS, 1), 0, NO_ARG, 0, 0, NO_ARG, 0, 0 },
-  //{"movs",  HPACK(I_LODS, 2), 0, NO_ARG, 0, 0, NO_ARG, 0, 0 },
   {"enter",  HPACK(I_ENTER, 0), 1, NO_ARG, 0, 0, NO_ARG, 0, 0 },
   {"enter1", HPACK(I_ENTER, 1), 1, NO_ARG, 0, 0, NO_ARG, 0, 0 },
   {"nop",    HPACK(I_NOP, 0), 1, NO_ARG, 0, 0, NO_ARG, 0, 0 },

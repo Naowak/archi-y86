@@ -25,7 +25,7 @@ typedef enum { R_ARG, M_ARG, I_ARG, NO_ARG } arg_t;
  * mais il faut alors recompiler tous les fichiers yo
  */
 typedef enum { I_NOP, I_HALT, I_RRMOVL, I_MUL, I_RMMOVL, I_MRMOVL,
-	       I_ALU, I_JXX, I_CALL, I_LODS, I_FREE4, I_FREE5,
+	       I_ALU, I_JXX, I_CALL, I_FREE4, I_FREE5,
 	       I_ENTER, I_LEAVE, I_JREG, I_JMEM, I_POP2 } itype_t;
 
 /* pour compatibilité */
@@ -35,11 +35,7 @@ typedef enum { I_NOP, I_HALT, I_RRMOVL, I_MUL, I_RMMOVL, I_MRMOVL,
 #define I_RET I_CALL
 #define I_PUSHL I_CALL
 #define I_POPL I_CALL
-#define I_STOS I_LODS
-//#define I_MOVS I_LODS
 
-#define I_MUL1 I_MUL
-#define I_MUL2 I_MUL
 
 /* Different ALU operations */
 /* JB ajout SAL (shift arithmetic left) and SAR (shift arithmetic right) */
