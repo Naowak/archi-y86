@@ -47,55 +47,60 @@ char *reg_name(reg_id_t id)
 
 instr_t instruction_set[] = 
 {
-	{"enter", HPACK(I_ENTER, 0), 2, NO_ARG, 1, 1, NO_ARG, 0, 0},
-	{"enter1", HPACK(I_ENTER, 0), 2, NO_ARG, 1, 1, NO_ARG, 0, 0},
-    {"mul", HPACK(I_MUL, 0), 7, R_ARG, 1, 1, R_ARG, 1, 0},
-		/* ajout instruction */
-    {"nop",    HPACK(I_NOP, 0), 1, NO_ARG, 0, 0, NO_ARG, 0, 0 },
-    {"halt",   HPACK(I_HALT, 0), 1, NO_ARG, 0, 0, NO_ARG, 0, 0 },
-    {"rrmovl", HPACK(I_RRMOVL, 0), 2, R_ARG, 1, 1, R_ARG, 1, 0 },
-    /* arg1hi indicates number of bytes */
-    {"irmovl", HPACK(I_IRMOVL, 0), 6, I_ARG, 2, 4, R_ARG, 1, 0 },
-    {"rmmovl", HPACK(I_RMMOVL, 0), 6, R_ARG, 1, 1, M_ARG, 1, 0 },
-    {"mrmovl", HPACK(I_MRMOVL, 0), 6, M_ARG, 1, 0, R_ARG, 1, 1 },
-    {"addl",   HPACK(I_ALU, A_ADD), 2, R_ARG, 1, 1, R_ARG, 1, 0 },
-    {"subl",   HPACK(I_ALU, A_SUB), 2, R_ARG, 1, 1, R_ARG, 1, 0 },
-    {"andl",   HPACK(I_ALU, A_AND), 2, R_ARG, 1, 1, R_ARG, 1, 0 },
-    {"xorl",   HPACK(I_ALU, A_XOR), 2, R_ARG, 1, 1, R_ARG, 1, 0 },
-    /* JB ajout sall et sarl (shift arithmetic left/right) */
-    {"sall",   HPACK(I_ALU, A_SAL), 2, R_ARG, 1, 1, R_ARG, 1, 0 },
-    {"sarl",   HPACK(I_ALU, A_SAR), 2, R_ARG, 1, 1, R_ARG, 1, 0 },
-    /* arg1hi indicates number of bytes */
-    {"jmp",    HPACK(I_JXX, J_YES), 5, I_ARG, 1, 4, NO_ARG, 0, 0 },
-    {"jle",    HPACK(I_JXX, J_LE), 5, I_ARG, 1, 4, NO_ARG, 0, 0 },
-    {"jl",     HPACK(I_JXX, J_L), 5, I_ARG, 1, 4, NO_ARG, 0, 0 },
-    {"je",     HPACK(I_JXX, J_E), 5, I_ARG, 1, 4, NO_ARG, 0, 0 },
-    {"jne",    HPACK(I_JXX, J_NE), 5, I_ARG, 1, 4, NO_ARG, 0, 0 },
-    {"jge",    HPACK(I_JXX, J_GE), 5, I_ARG, 1, 4, NO_ARG, 0, 0 },
-    {"jg",     HPACK(I_JXX, J_G), 5, I_ARG, 1, 4, NO_ARG, 0, 0 },
-    {"call",   HPACK(I_CALL, 0),    5, I_ARG, 1, 4, NO_ARG, 0, 0 },
-    {"ret",    HPACK(I_RET, 0), 1, NO_ARG, 0, 0, NO_ARG, 0, 0 },
-    {"pushl",  HPACK(I_PUSHL, 0) , 2, R_ARG, 1, 1, NO_ARG, 0, 0 },
-    {"popl",   HPACK(I_POPL, 0) ,  2, R_ARG, 1, 1, NO_ARG, 0, 0 },
-    /* JB versions immédiates de toutes les opérations */
-    {"iaddl",  HPACK(I_ALUI, A_ADD),  6, I_ARG, 2, 4, R_ARG, 1, 0 },
-    {"isubl",  HPACK(I_ALUI, A_SUB),  6, I_ARG, 2, 4, R_ARG, 1, 0 },
-    {"iandl",  HPACK(I_ALUI, A_AND),  6, I_ARG, 2, 4, R_ARG, 1, 0 },
-    {"ixorl",  HPACK(I_ALUI, A_XOR),  6, I_ARG, 2, 4, R_ARG, 1, 0 },
-    {"isall",  HPACK(I_ALUI, A_SAL),  6, I_ARG, 2, 4, R_ARG, 1, 0 },
-    {"isarl",  HPACK(I_ALUI, A_SAR),  6, I_ARG, 2, 4, R_ARG, 1, 0 },
-    {"leave",  HPACK(I_LEAVE, 0), 1, NO_ARG, 0, 0, NO_ARG, 0, 0 },
-    /* this is just a hack to make the I_POP2 code have an associated name */
-    {"pop2",   HPACK(I_POP2, 0) , 0, NO_ARG, 0, 0, NO_ARG, 0, 0 },
-    /* JB ajout 'jreg' et 'jmem' */
-    {"jreg",   HPACK(I_JREG, 0) , 2, R_ARG, 1, 1, NO_ARG, 0, 0 },
-    {"jmem",   HPACK(I_JMEM, 0), 6, M_ARG, 1, 0, NO_ARG, 0, 0 },
+  {"mul",  HPACK(I_MUL, 0), 7, R_ARG, 1, 1, R_ARG, 1, 0 },
+  {"mul1",  HPACK(I_MUL, 1), 7, R_ARG, 1, 1, R_ARG, 1, 0 },
+  {"mul2",  HPACK(I_MUL, 2), 7, R_ARG, 1, 1, R_ARG, 1, 0 },
 
-    /* For allocation instructions, arg1hi indicates number of bytes */
-    {".byte",  0x00, 1, I_ARG, 0, 1, NO_ARG, 0, 0 },
-    {".word",  0x00, 2, I_ARG, 0, 2, NO_ARG, 0, 0 },
-    {".long",  0x00, 4, I_ARG, 0, 4, NO_ARG, 0, 0 },
-    {NULL,     0   , 0, NO_ARG, 0, 0, NO_ARG, 0, 0 }
+  {"lods",  HPACK(I_LODS, 0), 0, NO_ARG, 0, 0, NO_ARG, 0, 0 },
+  {"stos",  HPACK(I_STOS, 1), 0, NO_ARG, 0, 0, NO_ARG, 0, 0 },
+  //{"movs",  HPACK(I_LODS, 2), 0, NO_ARG, 0, 0, NO_ARG, 0, 0 },
+  {"enter",  HPACK(I_ENTER, 0), 1, NO_ARG, 0, 0, NO_ARG, 0, 0 },
+  {"enter1", HPACK(I_ENTER, 1), 1, NO_ARG, 0, 0, NO_ARG, 0, 0 },
+  {"nop",    HPACK(I_NOP, 0), 1, NO_ARG, 0, 0, NO_ARG, 0, 0 },
+  {"halt",   HPACK(I_HALT, 0), 1, NO_ARG, 0, 0, NO_ARG, 0, 0 },
+  {"rrmovl", HPACK(I_RRMOVL, 0), 6, R_ARG, 1, 1, R_ARG, 1, 0 },
+  /* arg1hi indicates number of bytes */
+  {"irmovl", HPACK(I_IRMOVL, 0), 6, I_ARG, 2, 4, R_ARG, 1, 0 },
+  {"rmmovl", HPACK(I_RMMOVL, 0), 6, R_ARG, 1, 1, M_ARG, 1, 0 },
+  {"mrmovl", HPACK(I_MRMOVL, 0), 6, M_ARG, 1, 0, R_ARG, 1, 1 },
+  {"addl",   HPACK(I_ALU, A_ADD), 6, R_ARG, 1, 1, R_ARG, 1, 0 },
+  {"subl",   HPACK(I_ALU, A_SUB), 6, R_ARG, 1, 1, R_ARG, 1, 0 },
+  {"andl",   HPACK(I_ALU, A_AND), 6, R_ARG, 1, 1, R_ARG, 1, 0 },
+  {"xorl",   HPACK(I_ALU, A_XOR), 6, R_ARG, 1, 1, R_ARG, 1, 0 },
+  /* JB ajout sall et sarl (shift arithmetic left/right) */
+  {"sall",   HPACK(I_ALU, A_SAL), 6, R_ARG, 1, 1, R_ARG, 1, 0 },
+  {"sarl",   HPACK(I_ALU, A_SAR), 6, R_ARG, 1, 1, R_ARG, 1, 0 },
+  /* arg1hi indicates number of bytes */
+  {"jmp",    HPACK(I_JXX, J_YES), 5, I_ARG, 1, 4, NO_ARG, 0, 0 },
+  {"jle",    HPACK(I_JXX, J_LE), 5, I_ARG, 1, 4, NO_ARG, 0, 0 },
+  {"jl",     HPACK(I_JXX, J_L), 5, I_ARG, 1, 4, NO_ARG, 0, 0 },
+  {"je",     HPACK(I_JXX, J_E), 5, I_ARG, 1, 4, NO_ARG, 0, 0 },
+  {"jne",    HPACK(I_JXX, J_NE), 5, I_ARG, 1, 4, NO_ARG, 0, 0 },
+  {"jge",    HPACK(I_JXX, J_GE), 5, I_ARG, 1, 4, NO_ARG, 0, 0 },
+  {"jg",     HPACK(I_JXX, J_G), 5, I_ARG, 1, 4, NO_ARG, 0, 0 },
+  {"call",   HPACK(I_CALL, 0),    5, I_ARG, 1, 4, NO_ARG, 0, 0 },
+  {"ret",    HPACK(I_RET, 1), 1, NO_ARG, 0, 0, NO_ARG, 0, 0 },
+  {"pushl",  HPACK(I_PUSHL, 2) , 2, R_ARG, 1, 1, NO_ARG, 0, 0 },
+  {"popl",   HPACK(I_POPL, 3) ,  2, R_ARG, 1, 1, NO_ARG, 0, 0 },
+  /* JB versions immédiates de toutes les opérations */
+  {"iaddl",  HPACK(I_ALUI, A_ADD),  6, I_ARG, 2, 4, R_ARG, 1, 0 },
+  {"isubl",  HPACK(I_ALUI, A_SUB),  6, I_ARG, 2, 4, R_ARG, 1, 0 },
+  {"iandl",  HPACK(I_ALUI, A_AND),  6, I_ARG, 2, 4, R_ARG, 1, 0 },
+  {"ixorl",  HPACK(I_ALUI, A_XOR),  6, I_ARG, 2, 4, R_ARG, 1, 0 },
+  {"isall",  HPACK(I_ALUI, A_SAL),  6, I_ARG, 2, 4, R_ARG, 1, 0 },
+  {"isarl",  HPACK(I_ALUI, A_SAR),  6, I_ARG, 2, 4, R_ARG, 1, 0 },
+  {"leave",  HPACK(I_LEAVE, 0), 1, NO_ARG, 0, 0, NO_ARG, 0, 0 },
+  /* this is just a hack to make the I_POP2 code have an associated name */
+  {"pop2",   HPACK(I_POP2, 0) , 0, NO_ARG, 0, 0, NO_ARG, 0, 0 },
+  /* JB ajout 'jreg' et 'jmem' 
+  {"jreg",   HPACK(I_JREG, 0) , 2, R_ARG, 1, 1, NO_ARG, 0, 0 },
+  {"jmem",   HPACK(I_JMEM, 0), 6, M_ARG, 1, 0, NO_ARG, 0, 0 },
+  */
+  /* For allocation instructions, arg1hi indicates number of bytes */
+  {".byte",  0x00, 1, I_ARG, 0, 1, NO_ARG, 0, 0 },
+  {".word",  0x00, 2, I_ARG, 0, 2, NO_ARG, 0, 0 },
+  {".long",  0x00, 4, I_ARG, 0, 4, NO_ARG, 0, 0 },
+  {NULL,     0   , 0, NO_ARG, 0, 0, NO_ARG, 0, 0 }
 };
 
 instr_t invalid_instr =
@@ -713,30 +718,32 @@ exc_t step_state(state_ptr s, FILE *error_file)
 	set_reg_val(s->r, lo1, val);
 	s->pc = ftpc;
 	break;
- //    case I_IRMOVL:
-	// if (!ok1) {
-	//     if (error_file)
-	// 	fprintf(error_file,
-	// 		"PC = 0x%x, Invalid instruction address\n", s->pc);
-	//     return EXC_ADDR;
-	// }
-	// if (!okc) {
-	//     if (error_file)
-	// 	fprintf(error_file,
-	// 		"PC = 0x%x, Invalid instruction address",
-	// 		s->pc);
-	//     return EXC_INSTR;
-	// }
-	// if (lo1 >= 8) {
-	//     if (error_file)
-	// 	fprintf(error_file,
-	// 		"PC = 0x%x, Invalid register ID 0x%.1x\n",
-	// 		s->pc, lo1);
-	//     return EXC_INSTR;
-	// }
-	// set_reg_val(s->r, lo1, cval);
-	// s->pc = ftpc;
-	// break;
+	#if 0
+    case I_IRMOVL:
+	if (!ok1) {
+	    if (error_file)
+		fprintf(error_file,
+			"PC = 0x%x, Invalid instruction address\n", s->pc);
+	    return EXC_ADDR;
+	}
+	if (!okc) {
+	    if (error_file)
+		fprintf(error_file,
+			"PC = 0x%x, Invalid instruction address",
+			s->pc);
+	    return EXC_INSTR;
+	}
+	if (lo1 >= 8) {
+	    if (error_file)
+		fprintf(error_file,
+			"PC = 0x%x, Invalid register ID 0x%.1x\n",
+			s->pc, lo1);
+	    return EXC_INSTR;
+	}
+	set_reg_val(s->r, lo1, cval);
+	s->pc = ftpc;
+	break;
+	#endif
     case I_RMMOVL:
 	if (!ok1) {
 	    if (error_file)
@@ -851,6 +858,7 @@ exc_t step_state(state_ptr s, FILE *error_file)
 	}
 	s->pc = cval;
 	break;
+	#if 0
     case I_RET:
 	/* Return Instruction.  Pop address from stack */
 	dval = get_reg_val(s->r, REG_ESP);
@@ -864,6 +872,8 @@ exc_t step_state(state_ptr s, FILE *error_file)
 	set_reg_val(s->r, REG_ESP, dval + 4);
 	s->pc = val;
 	break;
+	 #endif
+	#if 0
     case I_PUSHL:
 	if (!ok1) {
 	    if (error_file)
@@ -888,6 +898,8 @@ exc_t step_state(state_ptr s, FILE *error_file)
 	}
 	s->pc = ftpc;
 	break;
+	#endif
+	#if 0
     case I_POPL:
 	if (!ok1) {
 	    if (error_file)
@@ -913,6 +925,7 @@ exc_t step_state(state_ptr s, FILE *error_file)
 	set_reg_val(s->r, hi1, val);
 	s->pc = ftpc;
 	break;
+	#endif
     case I_LEAVE:
 	dval = get_reg_val(s->r, REG_EBP);
 	set_reg_val(s->r, REG_ESP, dval+4);
@@ -926,33 +939,35 @@ exc_t step_state(state_ptr s, FILE *error_file)
 	set_reg_val(s->r, REG_EBP, val);
 	s->pc = ftpc;
 	break;
- //    case I_ALUI:
-	// if (!ok1) {
-	//     if (error_file)
-	// 	fprintf(error_file,
-	// 		"PC = 0x%x, Invalid instruction address\n", s->pc);
-	//     return EXC_ADDR;
-	// }
-	// if (!okc) {
-	//     if (error_file)
-	// 	fprintf(error_file,
-	// 		"PC = 0x%x, Invalid instruction address",
-	// 		s->pc);
-	//     return EXC_INSTR;
-	// }
-	// if (lo1 >= 8) {
-	//     if (error_file)
-	// 	fprintf(error_file,
-	// 		"PC = 0x%x, Invalid register ID 0x%.1x\n",
-	// 		s->pc, lo1);
-	//     return EXC_INSTR;
-	// }
-	// argB = get_reg_val(s->r, lo1);
-	// val = argB + cval;
-	// set_reg_val(s->r, lo1, val);
-	// s->cc = compute_cc(A_ADD, cval, argB);
-	// s->pc = ftpc;
-	// break;
+	#if 0
+    case I_ALUI:
+	if (!ok1) {
+	    if (error_file)
+		fprintf(error_file,
+			"PC = 0x%x, Invalid instruction address\n", s->pc);
+	    return EXC_ADDR;
+	}
+	if (!okc) {
+	    if (error_file)
+		fprintf(error_file,
+			"PC = 0x%x, Invalid instruction address",
+			s->pc);
+	    return EXC_INSTR;
+	}
+	if (lo1 >= 8) {
+	    if (error_file)
+		fprintf(error_file,
+			"PC = 0x%x, Invalid register ID 0x%.1x\n",
+			s->pc, lo1);
+	    return EXC_INSTR;
+	}
+	argB = get_reg_val(s->r, lo1);
+	val = argB + cval;
+	set_reg_val(s->r, lo1, val);
+	s->cc = compute_cc(A_ADD, cval, argB);
+	s->pc = ftpc;
+	break;
+	#endif
     default:
 	if (error_file)
 	    fprintf(error_file,
